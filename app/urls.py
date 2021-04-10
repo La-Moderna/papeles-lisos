@@ -13,9 +13,31 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from importlib import import_module
+
+from app.settings import LOCAL_APPS
+
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path, re_path
+
+from utils.routers import DefaultRouter
+
+router = DefaultRouter(trailing_slash=False)
+
+
+def autodiscover():
+    "Search for api.py files in the local apps"
+    for app in LOCAL_APPS:
+        try:
+            import_module('.'.join((app, 'api')))
+        except ImportError as e:
+            if e.msg != "No module named '{0}.api'".format(app):
+                print(e.msg)
+
+
+autodiscover()
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    re_path(r'^api/', include(router.urls))
 ]
