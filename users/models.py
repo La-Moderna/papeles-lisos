@@ -1,9 +1,11 @@
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
-    PermissionsMixin
+    PermissionsMixin,
 )
 from django.db import models
+
+from roles.models import Role
 
 from utils.models import TimeStampedMixin
 
@@ -73,6 +75,7 @@ class User(AbstractBaseUser, PermissionsMixin, TimeStampedMixin):
     is_active = models.BooleanField(
         default=True
     )
+    role = models.ManyToManyField(Role, blank=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['name']

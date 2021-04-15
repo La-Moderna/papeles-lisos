@@ -23,6 +23,7 @@ class CustomUserAdmin(UserAdmin):
             'is_active',
             'is_staff',
             'is_superuser',
+            'role',
             'groups', 'user_permissions')
         }),
     )
@@ -34,6 +35,7 @@ class CustomUserAdmin(UserAdmin):
             'is_active',
             'is_staff',
             'is_superuser',
+            'role',
             'groups', 'user_permissions')
         }),
     )
