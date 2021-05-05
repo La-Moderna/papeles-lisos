@@ -22,6 +22,15 @@ class RetrieveWarehouseSerializer(serializers.ModelSerializer):
         ]
 
 
+class DeleteWarehouseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Warehouse
+        fields = [
+            'id',
+            'is_active'
+        ]
+
+
 class InventorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Inventory
@@ -34,4 +43,13 @@ class RetrieveInventorySerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'stock'
+        ]
+
+
+class DeleteInventorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Inventory
+        fields = [
+            'id',
+            'is_active'
         ]

@@ -31,4 +31,4 @@ class Inventory(ActiveMixin):
         Warehouse,
         on_delete=models.CASCADE
     )
-    # company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    # articulo = models.ForeignKey(Articulo, on_delete= models.CASCADE)
