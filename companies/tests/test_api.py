@@ -47,7 +47,7 @@ class CompaniesAPITestCase(APITestCase):
             "email": self.user.email,
             "password": self.password
         }
-        
+
         response = self.client.post(
             reverse('auth-list'),
             data
