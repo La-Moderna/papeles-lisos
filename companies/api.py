@@ -10,8 +10,10 @@ from utils.mixins import BaseGenericViewSet
 from app.urls import router
 
 
-class CompanyViewSet(mixins.CreateModelMixin,
-                     viewsets.ViewSet,
+class CompanyViewSet(mixins.ListModelMixin,
+                     mixins.CreateModelMixin,
+                     mixins.RetrieveModelMixin,
+                     viewsets.GenericViewSet,
                      BaseGenericViewSet):
 
     serializer_class = serializers.CompanySerializer
@@ -19,45 +21,6 @@ class CompanyViewSet(mixins.CreateModelMixin,
     create_serializer_class = serializers.CreateCompanySerializer
     update_serializer_class = serializers.UpdateCompanySerializer
     queryset = models.Company.objects.all()
-
-    def list(self, request):
-        queryset = self.get_queryset()
-        company_serializer = self.get_serializer(
-            queryset,
-            action='retrieve',
-            many=True
-        )
-
-        return Response(company_serializer.data)
-
-    def create(self, request, *args, **kwargs):
-        company_serializer = self.get_serializer(
-            data=request.data,
-            action='create'
-        )
-
-        if company_serializer.is_valid():
-            data = request.data
-
-            id = data['id']
-            name = data['name']
-
-            company = models.Company.objects.create(
-                id=id,
-                name=name
-            )
-
-            company.save()
-
-            return Response(
-                company_serializer.data,
-                status=status.HTTP_201_CREATED
-            )
-        else:
-            return Response(
-                company_serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
-            )
 
     def partial_update(self, request, pk=None):
         queryset = self.get_queryset()
@@ -71,23 +34,23 @@ class CompanyViewSet(mixins.CreateModelMixin,
         )
 
         if company_serializer.is_valid():
-            company_object.name = request.data['name']
+            if 'name' in request.data:
+                company_object.name = request.data['name']
+
+            if 'is_active' in request.data:
+                company_object.is_active = request.data['is_active']
+
             company_object.save()
-            return Response(company_serializer.data)
+            return Response(
+                company_serializer.data,
+                status=status.HTTP_200_OK
+            )
 
         else:
             return Response(
                 company_serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST
             )
-
-    def retrieve(self, request, pk=None):
-        queryset = self.get_queryset()
-        user = get_object_or_404(queryset, pk=pk)
-
-        serializer = self.get_serializer(user, action='retrieve')
-
-        return Response(serializer.data)
 
     def destroy(self, request, *args, **kwargs):
         company = self.get_object()
@@ -96,7 +59,10 @@ class CompanyViewSet(mixins.CreateModelMixin,
 
         serializer = self.get_serializer(company)
 
-        return Response(serializer.data)
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK
+        )
 
 
 router.register(

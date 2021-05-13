@@ -3,4 +3,10 @@ from companies.models import Company
 from django.contrib import admin
 
 # Register your models here.
-admin.site.register(Company)
+
+
+class CompanyAdmin(admin.ModelAdmin):
+    pass
+
+
+admin.site.register(Company, CompanyAdmin)

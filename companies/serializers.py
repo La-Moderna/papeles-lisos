@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
 
-class CompanySerializer(serializers.Serializer):
+class CompanySerializer(serializers.ModelSerializer):
     """Serializer for Company"""
 
     class Meta:
@@ -56,10 +56,6 @@ class UpdateCompanySerializer(serializers.Serializer):
     def validate_name(self, name):
         if len(name) <= 3:
             raise ValidationError('Name must have at least Three character')
-
-    def validate_is_active(self, is_active):
-        if (is_active is not True or is_active is not False):
-            raise ValidationError('is_active must be a boolean value')
 
     def update(self, instance, validated_data):
         instance.id = validated_data.get(

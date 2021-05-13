@@ -12,9 +12,9 @@ from rest_framework.test import APITestCase
 from users.models import User
 
 
-class CompanyTestEndpoints(APITestCase):
+class CompaniesAPITestCase(APITestCase):
+    """Test /companies endpoint."""
     def setUp(self):
-        # Create User
         self.user = User.objects.create(
             email='user@test.com',
             name='Tester',
@@ -23,7 +23,6 @@ class CompanyTestEndpoints(APITestCase):
         self.user.set_password(self.password)
         self.user.save()
 
-        # Create Data
         self.company_1 = Company.objects.create(
             id='222',
             name="Ejemplo 1"
@@ -44,7 +43,6 @@ class CompanyTestEndpoints(APITestCase):
             name="Ejemplo 3"
         )
 
-        # Login
         data = {
             "email": self.user.email,
             "password": self.password
@@ -54,201 +52,193 @@ class CompanyTestEndpoints(APITestCase):
             data
         )
 
-        # Save Token
         self.token = response.data['token']
 
-    # Test Correct Inputs #
-
-    def test_get_companies(self):
-        # Authenticate with token
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-        # self.client.login(email=self.user.email, password=self.user.password)
 
-        # Get all companies
+    def test_list_companies(self):
+        '''Test valid list of companies'''
         response = self.client.get(reverse('company-list'))
 
-        # Check Correct Response
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # Check Correct Data
         serializer = Company.objects.all()
         serializer = CompanySerializer(serializer, many=True)
 
         self.assertEqual(serializer.data, response.data)
 
-    def test_get_one_company(self):
-        # Authenticate with token
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-        # self.client.login(email=self.user.email, password=self.user.password)
-
-        # Get all companies
+    def test_retrieve_company(self):
+        '''Test valid retrive company with a valid id'''
         response = self.client.get(
             reverse('company-detail', args=[self.company_3.id])
         )
 
-        # Check Correct Response
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # Check Correct Data
-        serializer = Company.objects.get(id=self.company_3.id)
-        serializer = CompanySerializer(serializer)
+        company = Company.objects.get(id=self.company_3.id)
+        serializer = CompanySerializer(company)
 
         self.assertEqual(serializer.data, response.data)
 
-    def test_create_companies(self):
-        # Company Data
+    def test_create_company(self):
+        '''Test valid creation of company'''
         company_data = {
             "id": "777",
             "name": "Ejemplo 7"
         }
 
-        # Authenticate with token
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-        # self.client.login(email=self.user.email, password=self.user.password)
-
-        # Get all companies
         response = self.client.post(reverse('company-list'), company_data)
 
-        # Check Correct Response
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        # Validate Company
-        Company.objects.get(id=company_data['id'])
+        company = Company.objects.get(id=company_data['id'])
+        self.assertEqual(company.name, company_data['name'])
 
-    def test_update_companies(self):
-        # Company Data
+    def test_partial_update_company_name(self):
+        '''Test valid update company name with an existing id'''
         company_data = {
             "name": "Ejemplo 2 Update"
         }
 
-        # Authenticate with token
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-
-        # Get all companies
         response = self.client.patch(
             reverse('company-detail', kwargs={'pk': '222'}),
             company_data
         )
 
-        # Check Correct Response
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # Check Correct Data
         company_retrive = Company.objects.get(id='222')
 
         self.assertEqual(company_data['name'], company_retrive.name)
 
-    def test_delete_companies(self):
-        # Authenticate with token
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-        # self.client.login(email=self.user.email, password=self.user.password)
+    def test_partial_update_company_is_active(self):
+        '''Test valid update company is_active with an existing id'''
+        company_data = {
+            "is_active": False
+        }
 
-        # Get all companies
+        response = self.client.patch(
+            reverse('company-detail', kwargs={'pk': '333'}),
+            company_data
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        company_retrive = Company.objects.get(id='333')
+
+        self.assertEqual(company_data['is_active'], company_retrive.is_active)
+
+    def test_destroy_company(self):
+        '''Test valid destroy company, updating the is_active value'''
         response = self.client.delete(
             reverse('company-detail',  kwargs={'pk': '222'})
         )
 
-        # Check Correct Response
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    # Test No Authentication #
+        company = Company.objects.get(pk='222')
+        self.assertEqual(company.is_active, False)
 
-    def test_get_companies_no_authentication(self):
-        # Get all companies
-        response = self.client.get(reverse('company-list'))
+    def test_list_companies_no_authentication(self):
+        '''Test no valid request with incorrect credentials'''
+        client = self.client
+        client.credentials(
+            HTTP_AUTHORIZATION='Credentials'
+        )
 
-        # Check Correct Response
+        response = client.get(reverse('company-list'))
+
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_get_one_company_no_authentication(self):
-        # Get all companies
-        response = self.client.get(
+    def test_retrieve_company_no_authentication(self):
+        '''Test no valid request with incorrect credentials'''
+        client = self.client
+        client.credentials(
+            HTTP_AUTHORIZATION='Credentials'
+        )
+
+        response = client.get(
             reverse('company-detail', args=[self.company_3.id])
         )
 
-        # Check Correct Response
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_create_companies_no_authentication(self):
-        # Company Data
+        '''Test no valid request with incorrect credentials'''
+        client = self.client
+        client.credentials(
+            HTTP_AUTHORIZATION='Credentials'
+        )
+
         company_data = {
             "id": "777",
             "name": "Ejemplo 7"
         }
 
-        # Get all companies
-        response = self.client.post(reverse('company-list'), company_data)
+        response = client.post(reverse('company-list'), company_data)
 
-        # Check Correct Response
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_delete_companies_no_authentication(self):
-        # Get all companies
-        response = self.client.delete(
+    def test_destroy_companies_no_authentication(self):
+        '''Test no valid request with incorrect credentials'''
+        client = self.client
+        client.credentials(
+            HTTP_AUTHORIZATION='Credentials'
+        )
+
+        response = client.delete(
             reverse('company-detail',  kwargs={'pk': '222'})
         )
 
-        # Check Correct Response
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    # Test Invalid Arguments #
-
-    def test_get_one_company_invalid_id(self):
-        # Authenticate with token
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-
-        # Get all companies
+    def test_retrieve_company_invalid_id(self):
+        '''Test no valid retrieve request with invalid id'''
         response = self.client.get(
             reverse('company-detail', args=[{'id': '000'}])
         )
 
-        # Check Correct Response
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_create_companies_none_values(self):
-        # Authenticate with token
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+    def test_create_company_none_values(self):
+        '''Test no valid create request with missing fields'''
+        company_data = {}
 
-        # Company Data
+        response = self.client.post(reverse('company-list'), company_data)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        self.assertDictContainsSubset(
+            {
+                "id": [
+                    "This field is required."
+                ],
+                "name": [
+                    "This field is required."
+                ]
+            },
+            response.data
+        )
+
+    def test_create_company_blank(self):
+        '''Test no valid create request with blank fields'''
         company_data = {
             "id": '',
             "name": ''
         }
 
-        # Get all companies
         response = self.client.post(reverse('company-list'), company_data)
 
-        # Check Correct Response
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_create_companies_none_name(self):
-        # Authenticate with token
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-
-        # Company Data
-        company_data = {
-            "id": '1234',
-            "name": ''
-        }
-
-        # Get all companies
-        response = self.client.post(reverse('company-list'), company_data)
-
-        # Check Correct Response
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-        def test_create_companies_none_id(self):
-            # Authenticate with token
-            self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-
-            # Company Data
-            company_data = {
-                "id": '',
-                "name": 'La moderna'
-            }
-
-            # Get all companies
-            response = self.client.post(reverse('company-list'), company_data)
-
-            # Check Correct Response
-            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertDictContainsSubset(
+            {
+                "id": [
+                    "This field may not be blank."
+                ],
+                "name": [
+                    "This field may not be blank."
+                ]
+            },
+            response.data
+        )
