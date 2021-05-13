@@ -6,7 +6,7 @@ from django.contrib import admin
 
 
 class CompanyAdmin(admin.ModelAdmin):
-    pass
+    list_display = ['id', 'name', 'is_active']
 
 
 admin.site.register(Company, CompanyAdmin)

@@ -47,6 +47,7 @@ class CompaniesAPITestCase(APITestCase):
             "email": self.user.email,
             "password": self.password
         }
+        
         response = self.client.post(
             reverse('auth-list'),
             data
@@ -112,7 +113,7 @@ class CompaniesAPITestCase(APITestCase):
         self.assertEqual(company_data['name'], company_retrive.name)
 
     def test_partial_update_company_is_active(self):
-        '''Test valid update company is_active with an existing id'''
+        '''Test not valid update of is_active'''
         company_data = {
             "is_active": False
         }
@@ -122,11 +123,14 @@ class CompaniesAPITestCase(APITestCase):
             company_data
         )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        company_retrive = Company.objects.get(id='333')
-
-        self.assertEqual(company_data['is_active'], company_retrive.is_active)
+        self.assertDictContainsSubset(
+            {
+                'is_active': 'This field can not be updated.'
+            },
+            response.data
+        )
 
     def test_destroy_company(self):
         '''Test valid destroy company, updating the is_active value'''
