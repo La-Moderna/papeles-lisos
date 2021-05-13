@@ -39,22 +39,12 @@ class WarehouseViewSet(mixins.ListModelMixin,
 
     def destroy(self, request, *args, **kwargs):
         """Override destroy method, update status is_active to false"""
-        partial = kwargs.pop('partial', True)
         instance = self.get_object()
         instance.is_active = False
+        instance.save()
         serializer = self.get_serializer(
             instance,
-            data=request.data,
-            partial=partial,
             action='delete')
-
-        serializer.is_valid(raise_exception=True)
-        self.perform_update_w(serializer)
-        if getattr(instance, '_prefetched_objects_cache', None):
-            # If 'prefetch_related' has been applied to a queryset, we need to
-            # forcibly invalidate the prefetch cache on the instance.
-            instance._prefetched_objects_cache = {}
-
         return Response(serializer.data)
 
     def perform_update_w(self, serializer):
@@ -83,22 +73,13 @@ class InventoryViewSet(mixins.ListModelMixin,
     # forma provisional de hacerlo, no se si es la mejor opcion
     def destroy(self, request, *args, **kwargs):
         """Override destroy method, update status is_active to false"""
-        partial = kwargs.pop('partial', True)
         instance = self.get_object()
         instance.is_active = False
+        instance.save()
+        print(instance)
         serializer = self.get_serializer(
             instance,
-            data=request.data,
-            partial=partial,
             action='delete')
-
-        serializer.is_valid(raise_exception=True)
-        self.perform_update_i(serializer)
-        if getattr(instance, '_prefetched_objects_cache', None):
-            # If 'prefetch_related' has been applied to a queryset, we need to
-            # forcibly invalidate the prefetch cache on the instance.
-            instance._prefetched_objects_cache = {}
-
         return Response(serializer.data)
 
     def perform_update_i(self, serializer):

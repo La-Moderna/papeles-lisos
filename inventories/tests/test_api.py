@@ -11,9 +11,10 @@ from users.models import User
 from utils.tokens import create_token
 
 
-class TestApi(APITestCase):
+class InventoryAPITestCase(APITestCase):
     """ Basic tests"""
     def setUp(self):
+        self.url_auth = reverse('auth-list')
         self.usuario = User.objects.create_user("prueba3@gmail.com",
                                                 "root")
         self.token = create_token(self.usuario)
@@ -22,7 +23,6 @@ class TestApi(APITestCase):
         self.warehouse_dummy.save()
         self.get_inventory_list_url = reverse('inventories-list')
         self.create_inventory_url = reverse('inventories-list')
-        self.create_warehouse_url = reverse('warehouses-list')
         self.get_warehouse_list_url = reverse('warehouses-list')
 
         self.inventory_data = {
@@ -49,7 +49,9 @@ class TestApi(APITestCase):
     #  si ya esta autenticado el client pues ya deberia de jalar
 
     def api_authentication(self):
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        res = self.client.post(self.url_auth, self.user_data)
+        token = res.json()['token']
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer '+token)
 
     def test_fails_to_register_without_data_success_token(self):
         self.api_authentication()
@@ -62,37 +64,9 @@ class TestApi(APITestCase):
             self.get_inventory_list_url)
         self.assertEqual(res.status_code, 200)
 
-    def test_cannot_register_warehouse_without_data_no_token(self):
-        print(self.get_inventory_list_url)
-        res = self.client.post(self.create_warehouse_url)
-        self.assertEqual(res.status_code, 401)
-
-    def test_cannot_register_warehouse_without_data_token_success(self):
-        self.api_authentication()
-        res = self.client.post(self.create_warehouse_url)
-        self.assertEqual(res.status_code, 400)
-
-    def test_can_register_warehouse_with_data_no_token(self):
-        res = self.client.post(self.create_warehouse_url, self.warehouse_data)
-        self.assertEqual(res.status_code, 401)
-
-    def test_can_register_warehouse_with_data_token_success(self):
-        self.api_authentication()
-        res = self.client.post(self.create_warehouse_url,
-                               self.warehouse_data)
-        self.assertEqual(res.status_code, 201)
-
-    def test_can_retrieve_warehouses_list_no_token(self):
-        res = self.client.get(self.get_warehouse_list_url)
-        self.assertEqual(res.status_code, 401)
-
-    def test_can_retrieve_warehouses_list_success_token(self):
-        self.api_authentication()
-        res = self.client.get(self.get_warehouse_list_url)
-        self.assertEqual(res.status_code, 200)
-
     def test_register_correctly_with_data_no_token(self):
-        res = self.client.post(self.create_inventory_url, self.inventory_data)
+        res = self.client.post(self.create_inventory_url,
+                               self.inventory_data)
         self.assertEqual(res.status_code, 401)
 
     def test_register_correctly_with_data_success_token(self):
@@ -100,38 +74,6 @@ class TestApi(APITestCase):
         res = self.client.post(self.create_inventory_url,
                                self.inventory_data)
         self.assertEqual(res.status_code, 201)
-
-    # # test to get 1 existing warehouse
-    def test_get_one_existing_warehouse_no_token(self):
-        self.warehouse_dummy = Warehouse(
-            description='testing 1 object retrieval')
-        self.warehouse_dummy.save()
-        res = self.client.get(
-            self.get_warehouse_list_url+"/"+str(self.warehouse_dummy.id)
-        )
-        self.assertEqual(res.status_code, 401)
-
-    def test_get_one_existing_warehouse_success_token(self):
-        self.api_authentication()
-        self.warehouse_dummy = Warehouse(
-                description='testing 1 object retrieval')
-        self.warehouse_dummy.save()
-        res = self.client.get(
-            self.get_warehouse_list_url+"/"+str(self.warehouse_dummy.id))
-        self.assertEqual(res.status_code, 200)
-
-    # test to get 1 non existing warehouse
-    def test_fails_to_get_non_existing_warehouse_no_token(self):
-        res = self.client.get(
-            self.get_warehouse_list_url+"/"+str(random.randint(1, 10)*5356)
-            )
-        self.assertEqual(res.status_code, 401)
-
-    def test_fails_to_get_non_existing_warehouse_success_token(self):
-        self.api_authentication()
-        res = self.client.get(
-            self.get_warehouse_list_url+"/"+str(random.randint(1, 10)*535))
-        self.assertEqual(res.status_code, 404)
 
     # test to get 1 existing inventory
     def test_get_one_existing_inventory(self):
@@ -157,27 +99,6 @@ class TestApi(APITestCase):
         res = self.client.get(
             self.get_warehouse_list_url+str(random.randint(1, 10)*5536))
         self.assertEqual(res.status_code, 404)
-
-    # # test to register a warehouse with wrong data type
-    def test_fails_to_register_warehouse_with_larger_data_no_token(self):
-        self.dummy_warehouse_data = {
-            'description': 'x'*255
-            }
-        res = self.client.post(
-            self.create_warehouse_url,
-            self.dummy_warehouse_data
-        )
-        self.assertEqual(res.status_code, 401)
-
-    def test_fails_to_register_warehouse_with_larger_data_succ_token(self):
-        self.api_authentication()
-        self.dummy_warehouse_data = {
-            'description': 'x'*255
-            }
-        res = self.client.post(
-            self.create_warehouse_url,
-            self.dummy_warehouse_data)
-        self.assertEqual(res.status_code, 400)
 
     # # test to register an inventory with wrong data type
     def test_fails_to_register_inventory_enourmus_number_type_no_token(self):
@@ -261,3 +182,114 @@ class TestApi(APITestCase):
         self.usuario.delete()
         self.warehouse_dummy.delete()
         self.usuario_dummy.delete()
+
+
+class WarehouseAPITestCase(APITestCase):
+    def setUp(self):
+        self.url_auth = reverse('auth-list')
+        self.usuario = User.objects.create_user("prueba3@gmail.com",
+                                                "root")
+        self.token = create_token(self.usuario)
+        self.warehouse_dummy = Warehouse(
+            description='for testing in another way')
+        self.warehouse_dummy.save()
+        self.create_warehouse_url = reverse('warehouses-list')
+        self.get_warehouse_list_url = reverse('warehouses-list')
+        self.warehouse_data = {
+            'description': 'This is for testing'
+        }
+        self.correct_whs_data_update = {
+            'status': False
+        }
+        self.usuario_dummy = User.objects.get(email="prueba3@gmail.com")
+        self.user_data = {
+            "email": self.usuario_dummy.email,
+            "password": "root"
+        }
+
+    def api_authentication(self):
+        res = self.client.post(self.url_auth, self.user_data)
+        token = res.json()['token']
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer '+token)
+
+    def test_cannot_register_warehouse_without_data_no_token(self):
+        res = self.client.post(self.create_warehouse_url)
+        self.assertEqual(res.status_code, 401)
+
+    def test_cannot_register_warehouse_without_data_token_success(self):
+        self.api_authentication()
+        res = self.client.post(self.create_warehouse_url)
+        self.assertEqual(res.status_code, 400)
+
+    def test_can_register_warehouse_with_data_no_token(self):
+        res = self.client.post(self.create_warehouse_url,
+                               self.warehouse_data)
+        self.assertEqual(res.status_code, 401)
+
+    def test_can_register_warehouse_with_data_token_success(self):
+        self.api_authentication()
+        res = self.client.post(self.create_warehouse_url,
+                               self.warehouse_data)
+        self.assertEqual(res.status_code, 201)
+
+    def test_can_retrieve_warehouses_list_no_token(self):
+        res = self.client.get(self.get_warehouse_list_url)
+        self.assertEqual(res.status_code, 401)
+
+    def test_can_retrieve_warehouses_list_success_token(self):
+        self.api_authentication()
+        res = self.client.get(self.get_warehouse_list_url)
+        self.assertEqual(res.status_code, 200)
+
+    # test to get 1 existing warehouse
+    def test_get_one_existing_warehouse_no_token(self):
+        self.warehouse_dummy = Warehouse(
+            description='testing 1 object retrieval')
+        self.warehouse_dummy.save()
+        res = self.client.get(
+            self.get_warehouse_list_url+"/"+str(self.warehouse_dummy.id)
+        )
+        self.assertEqual(res.status_code, 401)
+
+    def test_get_one_existing_warehouse_success_token(self):
+        self.api_authentication()
+        self.warehouse_dummy = Warehouse(
+                description='testing 1 object retrieval')
+        self.warehouse_dummy.save()
+        res = self.client.get(
+            self.get_warehouse_list_url+"/"+str(self.warehouse_dummy.id))
+        self.assertEqual(res.status_code, 200)
+
+    # test to get 1 non existing warehouse
+    def test_fails_to_get_non_existing_warehouse_no_token(self):
+        res = self.client.get(
+            self.get_warehouse_list_url+"/"+str(random.randint(1, 10)*5356)
+            )
+        self.assertEqual(res.status_code, 401)
+
+    def test_fails_to_get_non_existing_warehouse_success_token(self):
+        self.api_authentication()
+        res = self.client.get(
+            self.get_warehouse_list_url+"/"+str(random.randint(1, 10)*535))
+        self.assertEqual(res.status_code, 404)
+
+    # test to register a warehouse with wrong data type
+    def test_fails_to_register_warehouse_with_larger_data_no_token(self):
+        self.dummy_warehouse_data = {
+            'description': 'x'*255
+            }
+        res = self.client.post(
+            self.create_warehouse_url,
+            self.dummy_warehouse_data
+        )
+        self.assertEqual(res.status_code, 401)
+
+    def test_fails_to_register_warehouse_with_larger_data_succ_token(self):
+        self.api_authentication()
+        self.dummy_warehouse_data = {
+            'description': 'x'*255
+            }
+        res = self.client.post(
+            self.create_warehouse_url,
+            self.dummy_warehouse_data)
+        self.assertEqual(res.status_code, 400)
