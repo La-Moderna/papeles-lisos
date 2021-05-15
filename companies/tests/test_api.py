@@ -127,7 +127,9 @@ class CompaniesAPITestCase(APITestCase):
 
         self.assertDictContainsSubset(
             {
-                'is_active': 'This field can not be updated.'
+                'is_active': [
+                    'This field can not be updated.'
+                ]
             },
             response.data
         )

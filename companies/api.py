@@ -37,16 +37,6 @@ class CompanyViewSet(mixins.ListModelMixin,
             if 'name' in request.data:
                 company_object.name = request.data['name']
 
-            if 'is_active' in request.data:
-                raw_response = {
-                    'is_active': 'This field can not be updated.'
-                }
-
-                return Response(
-                    raw_response,
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
             company_object.save()
             return Response(
                 company_serializer.data,

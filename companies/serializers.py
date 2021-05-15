@@ -47,7 +47,7 @@ class UpdateCompanySerializer(serializers.Serializer):
 
     id = serializers.CharField(max_length=4)
     name = serializers.CharField(max_length=70)
-    is_active = serializers.BooleanField(default=True)
+    is_active = serializers.BooleanField()
 
     def validate_id(self, id):
         if id == '':
@@ -56,6 +56,12 @@ class UpdateCompanySerializer(serializers.Serializer):
     def validate_name(self, name):
         if len(name) <= 3:
             raise ValidationError('Name must have at least Three character')
+
+    def validate_is_active(self, is_active):
+        if is_active is not None:
+            raise serializers.ValidationError(
+                'This field can not be updated.'
+            )
 
     def update(self, instance, validated_data):
         instance.id = validated_data.get(
@@ -68,9 +74,9 @@ class UpdateCompanySerializer(serializers.Serializer):
             instance.name
         )
 
-        instance.is_active = validated_data.get(
-            'is_active',
-            instance.is_active
+        instance.is_valid = validated_data.get(
+            'is_valid',
+            instance.is_valid
         )
 
         return instance
