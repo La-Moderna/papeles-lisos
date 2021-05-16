@@ -66,7 +66,29 @@ class CompaniesAPITestCase(APITestCase):
         serializer = Company.objects.all()
         serializer = CompanySerializer(serializer, many=True)
 
-        self.assertEqual(serializer.data, response.data)
+        self.assertDictContainsSubset(
+            {
+                'id': self.company_1.id,
+                'name': self.company_1.name
+            }, response.data[0])
+
+        self.assertDictContainsSubset(
+            {
+                'id': self.company_2.id,
+                'name': self.company_2.name
+            }, response.data[1])
+
+        self.assertDictContainsSubset(
+            {
+                'id': self.company_3.id,
+                'name': self.company_3.name
+            }, response.data[2])
+
+        self.assertDictContainsSubset(
+            {
+                'id': self.company_4.id,
+                'name': self.company_4.name
+            }, response.data[3])
 
     def test_retrieve_company(self):
         '''Test valid retrive company with a valid id'''
@@ -76,10 +98,11 @@ class CompaniesAPITestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        company = Company.objects.get(id=self.company_3.id)
-        serializer = CompanySerializer(company)
-
-        self.assertEqual(serializer.data, response.data)
+        self.assertDictContainsSubset(
+            {
+                'id': self.company_3.id,
+                'name': self.company_3.name
+            }, response.data)
 
     def test_create_company(self):
         '''Test valid creation of company'''
@@ -119,20 +142,46 @@ class CompaniesAPITestCase(APITestCase):
         }
 
         response = self.client.patch(
-            reverse('company-detail', kwargs={'pk': '333'}),
+            reverse('company-detail', kwargs={'pk': self.company_2.id}),
             company_data
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertDictContainsSubset(
             {
-                'is_active': [
-                    'This field can not be updated.'
-                ]
+                'id': self.company_2.id,
+                'name': self.company_2.name
             },
             response.data
         )
+
+    def test_partial_update_company_id(self):
+        '''Test not valid update of is_active'''
+        company_data = {
+            "id": '9999'
+        }
+
+        old_id = self.company_2.id
+
+        response = self.client.patch(
+            reverse('company-detail', kwargs={'pk': self.company_2.id}),
+            company_data
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertDictContainsSubset(
+            {
+                'id': company_data['id'],
+                'name': self.company_2.name
+            },
+            response.data
+        )
+
+        list = Company.objects.filter(id=old_id)
+
+        self.assertEqual(len(list), 0)
 
     def test_destroy_company(self):
         '''Test valid destroy company, updating the is_active value'''

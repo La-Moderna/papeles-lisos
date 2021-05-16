@@ -2,64 +2,51 @@ from companies import models, serializers
 
 from django.shortcuts import get_object_or_404
 
-from rest_framework import mixins, status, viewsets
-from rest_framework.response import Response
+from rest_framework import viewsets
 
-from utils.mixins import BaseGenericViewSet
+from utils.mixins import (
+    BaseGenericViewSet,
+    CreateModelMixin,
+    DestroyModelMixin,
+    ListModelMixin,
+    RetrieveModelMixin,
+    UpdateModelMixin
+)
 
 from app.urls import router
 
 
-class CompanyViewSet(mixins.ListModelMixin,
-                     mixins.CreateModelMixin,
-                     mixins.RetrieveModelMixin,
+class CompanyViewSet(CreateModelMixin,
+                     ListModelMixin,
+                     RetrieveModelMixin,
+                     UpdateModelMixin,
+                     DestroyModelMixin,
                      viewsets.GenericViewSet,
                      BaseGenericViewSet):
 
     serializer_class = serializers.CompanySerializer
-    retrieve_serializer_class = serializers.RetriveCompanySerializer
+    list_serializer_class = serializers.RetrieveCompanySerializer
     create_serializer_class = serializers.CreateCompanySerializer
-    update_serializer_class = serializers.UpdateCompanySerializer
-    queryset = models.Company.objects.all()
+    retrieve_serializer_class = serializers.RetrieveCompanySerializer
+    update_serializer_class = serializers.CreateCompanySerializer
 
-    def partial_update(self, request, pk=None):
-        queryset = self.get_queryset()
-        company_object = get_object_or_404(queryset, pk=pk)
+    queryset = models.Company.objects.filter(is_active=True)
 
-        company_serializer = self.get_serializer(
-            company_object,
-            data=request.data,
-            action='update',
-            partial=True
-        )
+    def partial_update(self, request, *args, **kwargs):
+        old_row = get_object_or_404(self.get_queryset(), pk=int(kwargs['pk']))
 
-        if company_serializer.is_valid():
-            if 'name' in request.data:
-                company_object.name = request.data['name']
+        new_row = super(
+            CompanyViewSet,
+            self
+        ).partial_update(request, *args, **kwargs)
 
-            company_object.save()
-            return Response(
-                company_serializer.data,
-                status=status.HTTP_200_OK
-            )
+        if 'id' in request.data:
+            id = request.data['id']
 
-        else:
-            return Response(
-                company_serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            if id is not None and id != old_row.pk:
+                old_row.delete()
 
-    def destroy(self, request, *args, **kwargs):
-        company = self.get_object()
-        company.is_active = False
-        company.save()
-
-        serializer = self.get_serializer(company)
-
-        return Response(
-            serializer.data,
-            status=status.HTTP_200_OK
-        )
+        return new_row
 
 
 router.register(
