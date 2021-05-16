@@ -32,7 +32,7 @@ class CreateCompanySerializer(serializers.ModelSerializer):
 
     def validate_name(self, name):
         if len(name) < 3:
-            raise ValidationError('Name must have at least Three character')
+            raise ValidationError('Name must have at least three characters')
 
         return name
 
@@ -53,4 +53,4 @@ class UpdateCompanySerializer(serializers.Serializer):
 
     def validate_name(self, name):
         if len(name) < 3:
-            raise ValidationError('Name must have at least Three character')
+            raise ValidationError('Name must have at least three characters')
