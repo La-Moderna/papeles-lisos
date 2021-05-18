@@ -1,3 +1,8 @@
-from django.db import models # noqa
+from django.db import models
 
-# Create your models here.
+from utils.models import ActiveMixin
+
+
+class Company(ActiveMixin):
+    id = models.CharField(max_length=4, primary_key=True)
+    name = models.CharField(max_length=70)
