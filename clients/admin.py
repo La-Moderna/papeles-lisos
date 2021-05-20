@@ -8,6 +8,7 @@ class AgentAdmin(admin.ModelAdmin):
     list_display = [
         'id',
         'representant',
+        'company',
         'is_active',
     ]
 
@@ -17,6 +18,7 @@ class BalanceAdmin(admin.ModelAdmin):
         'id',
         'order_balance',
         'facture_balance',
+        'company',
         'is_active',
     ]
 

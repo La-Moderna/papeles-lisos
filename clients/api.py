@@ -1,25 +1,46 @@
 # Create your views here.
-from clients import serializers
+from clients import models, serializers
 
-from rest_framework import mixins, viewsets
+from rest_framework import viewsets
 
-from utils.mixins import BaseGenericViewSet
+from utils.mixins import (
+    BaseGenericViewSet,
+    CreateModelMixin,
+    DestroyModelMixin,
+    ListModelMixin,
+    RetrieveModelMixin,
+    UpdateModelMixin
+)
 
 from app.urls import router
 
 
-class AgentViewSet(mixins.CreateModelMixin,
+class AgentViewSet(CreateModelMixin, ListModelMixin, RetrieveModelMixin,
+                   DestroyModelMixin, UpdateModelMixin,
                    viewsets.GenericViewSet,
                    BaseGenericViewSet):
     """Manage Agents."""
     serializer_class = serializers.AgentSerializer
+    create_serializer_class = serializers.CreateAgentSerializer
+    list_serializer_class = serializers.AgentSerializer
+    retrieve_serializer_class = serializers.CreateAgentSerializer
+    update_serializer_class = serializers.UpdateAgentSerializer
+
+    queryset = models.Agent.objects.filter(is_active=True)
 
 
-class BalanceViewSet(mixins.CreateModelMixin,
+class BalanceViewSet(CreateModelMixin, ListModelMixin, RetrieveModelMixin,
+                     DestroyModelMixin, UpdateModelMixin,
                      viewsets.GenericViewSet,
                      BaseGenericViewSet):
     """Manage Balance."""
     serializer_class = serializers.BalanceSerializer
+    create_serializer_class = serializers.CreateBalanceSerializer
+    list_serializer_class = serializers.BalanceSerializer
+    retrieve_serializer_class = serializers.CreateBalanceSerializer
+    update_serializer_class = serializers.UpdateBalanceSerializer
+
+    queryset = models.Balance.objects.filter(is_active=True)
 
 
 router.register(
