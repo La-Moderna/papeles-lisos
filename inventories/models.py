@@ -19,6 +19,18 @@ class Warehouse(ActiveMixin):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
 
 
+class Item(ActiveMixin):
+    id = models.CharField(max_length=20, primary_key=True)
+    description = models.CharField(max_length=70)
+    udVta = models.CharField(max_length=4)
+    access_key = models.CharField(max_length=20)
+    standar_cost = models.DecimalField(max_digits=15, decimal_places=4)
+
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    # Miss M:N table with Inventory
+    # Miss M:N table with OrderDetails
+
+
 class Inventory(ActiveMixin):
     class Meta:
         """Define the behavior of the model"""
@@ -33,4 +45,4 @@ class Inventory(ActiveMixin):
         Warehouse,
         on_delete=models.CASCADE
     )
-    # articulo = models.ForeignKey(Articulo, on_delete= models.CASCADE)
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)

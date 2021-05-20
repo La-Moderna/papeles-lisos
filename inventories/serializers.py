@@ -1,9 +1,7 @@
-"""Serializer for inventory API."""
-
-
 from django.core.exceptions import ValidationError
 
 from inventories.models import Inventory
+from inventories.models import Item
 from inventories.models import Warehouse
 
 from rest_framework import serializers
@@ -44,6 +42,32 @@ class RetrieveWarehouseSerializer(serializers.ModelSerializer):
             'warehouse_name',
             'description',
             'company'
+        ]
+
+
+class ItemSerializer(serializers.ModelSerializer):
+    """Serializer for Item"""
+
+    class Meta:
+        """Define the class behavior"""
+
+        model = Item
+        fields = '__all__'
+
+
+class RetrieveItemSerializer(serializers.ModelSerializer):
+    """Serializer to retrieve Item"""
+
+    class Meta:
+        """Define the class behavior"""
+
+        model = Item
+        fields = [
+            'id',
+            'description',
+            'udVta',
+            'access_key',
+            'standar_cost',
         ]
 
 
@@ -96,4 +120,27 @@ class CreateInventorySerializer(serializers.ModelSerializer):
             'id',
             'stock',
             'warehouse'
+        ]
+
+
+class CreateItemSerializer(serializers.ModelSerializer):
+    """Serializer to retrieve Item"""
+
+    def validate_id(self, id):
+        if len(id) < 1:
+            raise ValidationError('Id must have at least one characters')
+
+        return id
+
+    class Meta:
+        """Define the class behavior"""
+
+        model = Item
+        fields = [
+            'id',
+            'description',
+            'udVta',
+            'access_key',
+            'standar_cost',
+            'company'
         ]
