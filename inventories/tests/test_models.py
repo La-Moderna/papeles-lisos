@@ -23,9 +23,18 @@ class InventoryTestCase(TestCase):
             description="Test warehouse exception",
             company=self.company
         )
+        self.item = Item.objects.create(
+            id="10015474",
+            description="61200005001",
+            udVta="MIL",
+            access_key="864",
+            standar_cost=2.0583,
+            company=self.company
+        )
         self.inventory = Inventory.objects.create(
             stock='2000',
-            warehouse=self.warehouse
+            warehouse=self.warehouse,
+            item=self.item
         )
 
     def test_max_length(self):
@@ -53,6 +62,11 @@ class InventoryTestCase(TestCase):
 
         with transaction.atomic():
             inventory.warehouse = None
+            with self.assertRaises(IntegrityError):
+                inventory.save()
+
+        with transaction.atomic():
+            inventory.item = None
             with self.assertRaises(IntegrityError):
                 inventory.save()
 

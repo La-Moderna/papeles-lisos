@@ -74,7 +74,7 @@ class InventoryViewSet(ListModelMixin,
         old_row = get_object_or_404(self.get_queryset(), pk=int(kwargs['pk']))
 
         new_row = super(
-            ItemViewSet,
+            InventoryViewSet,
             self
         ).partial_update(request, *args, **kwargs)
 

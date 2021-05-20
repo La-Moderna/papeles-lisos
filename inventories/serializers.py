@@ -68,6 +68,7 @@ class RetrieveItemSerializer(serializers.ModelSerializer):
             'udVta',
             'access_key',
             'standar_cost',
+            'company'
         ]
 
 

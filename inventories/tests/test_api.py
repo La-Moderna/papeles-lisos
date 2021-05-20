@@ -39,12 +39,21 @@ class InventoryAPITestCase(APITestCase):
             warehouse_name="43a",
             description='for testing updates',
             company=self.company_1)
+        self.item_1 = Item.objects.create(
+            id="10011262",
+            description="L-3",
+            udVta="MIL",
+            access_key="905",
+            standar_cost=0.9631,
+            company=self.company_1
+        )
         self.get_inventory_list_url = reverse('inventories-list')
         self.create_inventory_url = reverse('inventories-list')
         self.get_warehouse_list_url = reverse('warehouses-list')
         self.inventory_data = {
             'stock': 3000.00,
-            'warehouse': self.warehouse_dummy.id
+            'warehouse': self.warehouse_dummy.id,
+            'item': self.item_1.id
         }
         self.warehouse_data = {
             'description': 'This is for testing'
@@ -133,7 +142,8 @@ class InventoryAPITestCase(APITestCase):
 
         self.inventory_dummy = Inventory.objects.create(
             stock=3500.51,
-            warehouse=self.warehouse_dummy_2)
+            warehouse=self.warehouse_dummy_2,
+            item=self.item_1)
 
         res = self.client.get(
             self.get_inventory_list_url+"/"+str(self.inventory_dummy.id))
@@ -169,7 +179,8 @@ class InventoryAPITestCase(APITestCase):
 
         self.dummy_inventory_data = {
             'stock': 10000000*1000000,
-            'warehouse': self.warehouse_dummy.id
+            'warehouse': self.warehouse_dummy.id,
+            'item': self.item_1.id
         }
 
         res = self.client.post(
@@ -186,7 +197,8 @@ class InventoryAPITestCase(APITestCase):
 
         self.dummy_inventory_data = {
             'stock': 10000000*1000000,
-            'warehouse': self.warehouse_dummy.id
+            'warehouse': self.warehouse_dummy.id,
+            'item': self.item_1.id
         }
 
         res = self.client.post(
@@ -200,7 +212,8 @@ class InventoryAPITestCase(APITestCase):
 
         self.wrong_inventory_data = {
             'stock': 'test_string',
-            'warehouse': self.warehouse_dummy.id
+            'warehouse': self.warehouse_dummy.id,
+            'item': self.item_1.id
         }
 
         res = self.client.post(
@@ -217,7 +230,8 @@ class InventoryAPITestCase(APITestCase):
 
         self.wrong_inventory_data = {
             'stock': 'test_string',
-            'warehouse': self.warehouse_dummy.id
+            'warehouse': self.warehouse_dummy.id,
+            'item': self.item_1.id
         }
 
         res = self.client.post(
@@ -260,7 +274,8 @@ class InventoryAPITestCase(APITestCase):
 
         self.false_w_inventory_data = {
             'stock': 3000.00,
-            'warehouse': 20
+            'warehouse': 20,
+            'item': self.item_1.id
         }
 
         res = self.client.post(
@@ -274,7 +289,8 @@ class InventoryAPITestCase(APITestCase):
         self.api_authentication()
         self.inventory_dummy_3 = Inventory.objects.create(
             stock=3500.51,
-            warehouse=self.warehouse_dummy)
+            warehouse=self.warehouse_dummy,
+            item=self.item_1)
         inventory_data = {
             "stock": 4790
         }
@@ -291,7 +307,8 @@ class InventoryAPITestCase(APITestCase):
         self.api_authentication()
         inventory_dummy_3 = Inventory.objects.create(
             stock=3500.51,
-            warehouse=self.warehouse_dummy)
+            warehouse=self.warehouse_dummy,
+            item=self.item_1)
         inventory_data = {
             "warehouse": self.warehouse_dummy_3.id
         }
@@ -308,7 +325,8 @@ class InventoryAPITestCase(APITestCase):
 
         inventory_dummy_4 = Inventory.objects.create(
             stock=3600.51,
-            warehouse=self.warehouse_dummy)
+            warehouse=self.warehouse_dummy,
+            item=self.item_1)
 
         self.api_authentication()
         res = self.client.delete(
@@ -554,6 +572,10 @@ class ItemsAPITestCase(APITestCase):
         self.company_2 = Company.objects.create(
             id='333',
             name="Ejemplo 2"
+        )
+        self.company_1 = Company.objects.create(
+            id='222',
+            name="Ejemplo 1"
         )
 
         self.item_1 = Item.objects.create(
