@@ -11,8 +11,8 @@ from rest_framework.test import APITestCase
 from users.models import User
 
 
-class AgentTestEndpoints(APITestCase):
-    """Test /agents model."""
+class AgentAPITestCase(APITestCase):
+    """Test/agents model."""
     def setUp(self):
         self.company = Company.objects.create(
             id='619',
@@ -221,8 +221,8 @@ class AgentTestEndpoints(APITestCase):
         )
 
 
-class BalanceTestEndpoints(APITestCase):
-    """Test /balance model."""
+class BalanceAPITestCase(APITestCase):
+    """Test/balance model."""
     def setUp(self):
         self.company = Company.objects.create(
             id='619',
