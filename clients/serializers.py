@@ -23,24 +23,9 @@ class CreateAgentSerializer(serializers.ModelSerializer):
         ]
 
 
-class ListAgentSerializer(serializers.ModelSerializer):
-    """Serializer for Agent Model."""
-
-    class Meta:
-        model = Agent
-        fields = ('__all__')
-
-
 class RetrieveAgentSerializer(serializers.ModelSerializer):
     """Serializer for Agent Model."""
 
-    class Meta:
-        model = Agent
-        fields = ('__all__')
-
-
-class UpdateAgentSerializer(serializers.ModelSerializer):
-    """Serializer for Agent Model."""
     class Meta:
         model = Agent
         fields = [
@@ -69,8 +54,9 @@ class CreateBalanceSerializer(serializers.ModelSerializer):
         ]
 
 
-class UpdateBalanceSerializer(serializers.ModelSerializer):
+class RetrieveBalanceSerializer(serializers.ModelSerializer):
     """Serializer for Balance Model."""
+
     class Meta:
         model = Balance
         fields = [
@@ -78,19 +64,3 @@ class UpdateBalanceSerializer(serializers.ModelSerializer):
             'facture_balance',
             'company'
         ]
-
-
-class ListBalanceSerializer(serializers.ModelSerializer):
-    """Serializer for Balance Model."""
-
-    class Meta:
-        model = Balance
-        fields = ('__all__')
-
-
-class RetrieveBalanceSerializer(serializers.ModelSerializer):
-    """Serializer for Balance Model."""
-
-    class Meta:
-        model = Balance
-        fields = ('__all__')
