@@ -15,28 +15,36 @@ from utils.mixins import (
 from app.urls import router
 
 
-class AgentViewSet(CreateModelMixin, ListModelMixin, RetrieveModelMixin,
-                   DestroyModelMixin, UpdateModelMixin,
+class AgentViewSet(ListModelMixin,
+                   CreateModelMixin,
+                   RetrieveModelMixin,
+                   UpdateModelMixin,
+                   DestroyModelMixin,
                    viewsets.GenericViewSet,
                    BaseGenericViewSet):
     """Manage Agents."""
+
     serializer_class = serializers.AgentSerializer
-    create_serializer_class = serializers.CreateAgentSerializer
     list_serializer_class = serializers.AgentSerializer
+    create_serializer_class = serializers.CreateAgentSerializer
     retrieve_serializer_class = serializers.CreateAgentSerializer
     update_serializer_class = serializers.UpdateAgentSerializer
 
     queryset = models.Agent.objects.filter(is_active=True)
 
 
-class BalanceViewSet(CreateModelMixin, ListModelMixin, RetrieveModelMixin,
-                     DestroyModelMixin, UpdateModelMixin,
+class BalanceViewSet(ListModelMixin,
+                     CreateModelMixin,
+                     RetrieveModelMixin,
+                     UpdateModelMixin,
+                     DestroyModelMixin,
                      viewsets.GenericViewSet,
                      BaseGenericViewSet):
     """Manage Balance."""
+
     serializer_class = serializers.BalanceSerializer
-    create_serializer_class = serializers.CreateBalanceSerializer
     list_serializer_class = serializers.BalanceSerializer
+    create_serializer_class = serializers.CreateBalanceSerializer
     retrieve_serializer_class = serializers.CreateBalanceSerializer
     update_serializer_class = serializers.UpdateBalanceSerializer
 
