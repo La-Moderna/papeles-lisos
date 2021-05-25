@@ -72,13 +72,6 @@ class RetrieveItemSerializer(serializers.ModelSerializer):
         ]
 
 
-class UpdateWarehouseSerializer(serializers.ModelSerializer):
-
-    def validate_description(self, description):
-        if len(description) < 3:
-            raise ValidationError('Description must have at least three chars')
-
-
 class InventorySerializer(serializers.ModelSerializer):
     """Serializer for Inventory"""
 
@@ -98,13 +91,6 @@ class RetrieveInventorySerializer(serializers.ModelSerializer):
             'id',
             'stock'
         ]
-
-
-class UpdateInventorySerializer(serializers.Serializer):
-
-    def validate_stock(self, stock):
-        if stock < 0:
-            raise ValidationError("Stock must be positive")
 
 
 class CreateInventorySerializer(serializers.ModelSerializer):

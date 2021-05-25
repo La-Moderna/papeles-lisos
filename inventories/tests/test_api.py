@@ -1,4 +1,3 @@
-import random
 from decimal import Decimal
 
 from companies.models import Company
@@ -153,18 +152,18 @@ class InventoryAPITestCase(APITestCase):
         """Test fails to retrieve non existing inventory"""
 
         res = self.client.get(
-            self.get_inventory_list_url+str(random.randint(1, 10)*5536)
+            self.get_inventory_list_url+'/'+str(50)
             )
 
-        self.assertEqual(res.status_code, 404)
+        self.assertEqual(res.status_code, 401)
 
     def test_retrieve_non_existing_inventory_success_token_fails(self):
         """Test fails retrieve non existing inventory with token"""
 
         self.api_authentication()
-
+        print("Probando chistosas: ", self.get_warehouse_list_url+'/'+str(50))
         res = self.client.get(
-            self.get_warehouse_list_url+str(random.randint(1, 10)*5536))
+            self.get_warehouse_list_url+'/'+str(50))
 
         self.assertEqual(res.status_code, 404)
 
@@ -448,7 +447,7 @@ class WarehouseAPITestCase(APITestCase):
             company=self.company_1)
 
         res = self.client.get(
-            self.get_warehouse_list_url+"/"+str(self.warehouse_dummy.id)
+            self.get_warehouse_list_url+'/'+str(self.warehouse_dummy.id)
         )
 
         self.assertEqual(res.status_code, 401)
@@ -463,7 +462,7 @@ class WarehouseAPITestCase(APITestCase):
             company=self.company_1)
 
         res = self.client.get(
-            self.get_warehouse_list_url+"/"+str(self.warehouse_dummy_2.id))
+            self.get_warehouse_list_url+'/'+str(self.warehouse_dummy_2.id))
 
         self.assertEqual(res.status_code, 200)
 
@@ -478,7 +477,7 @@ class WarehouseAPITestCase(APITestCase):
         """Test to retrieve non existing warehouse no token fails"""
 
         res = self.client.get(
-            self.get_warehouse_list_url+"/"+str(random.randint(1, 10)*5356)
+            self.get_warehouse_list_url+'/'+str(50)
             )
 
         self.assertEqual(res.status_code, 401)
@@ -489,7 +488,7 @@ class WarehouseAPITestCase(APITestCase):
         self.api_authentication()
 
         res = self.client.get(
-            self.get_warehouse_list_url+"/"+str(random.randint(1, 10)*535))
+            self.get_warehouse_list_url+'/'+str(50))
 
         self.assertEqual(res.status_code, 404)
 
@@ -563,15 +562,14 @@ class ItemsAPITestCase(APITestCase):
         self.password = 'Tester_123'
         self.user.set_password(self.password)
         self.user.save()
-        self.company_2 = Company.objects.create(
-            id='333',
-            name="Ejemplo 2"
-        )
         self.company_1 = Company.objects.create(
             id='222',
             name="Ejemplo 1"
         )
-
+        self.company_2 = Company.objects.create(
+            id='333',
+            name="Ejemplo 2"
+        )
         self.item_1 = Item.objects.create(
             id="10011262",
             description="L-3",
