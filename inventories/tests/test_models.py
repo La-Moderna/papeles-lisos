@@ -1,4 +1,4 @@
-""" Tests for users of the application."""
+""" Tests for inventories module."""
 
 from companies.models import Company
 
