@@ -6,7 +6,7 @@ from utils.models import ActiveMixin
 
 
 class Item(ActiveMixin):
-    id = models.CharField(max_length=20, primary_key=True)
+    item_id = models.CharField(max_length=20, unique=True)
     description = models.CharField(max_length=70)
     udVta = models.CharField(max_length=4)
     access_key = models.CharField(max_length=20)
