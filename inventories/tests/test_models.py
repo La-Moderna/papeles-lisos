@@ -65,7 +65,7 @@ class InventoryTestCase(TestCase):
                 inventory.save()
 
     def test_on_delete_inventory_fk_warehouse(self):
-        """Test on delete constraints (DO_NOTHING)"""
+        """Test on delete constraints (DELETE ON CASCADE)"""
         company_test = Company.objects.create(
             company_id='com1',
             name='Papeles de prueba')
@@ -89,11 +89,11 @@ class InventoryTestCase(TestCase):
 
         warehouse_1.delete()
         inventory_qs = Inventory.objects.filter(pk=inventory.pk)
-        self.assertEqual(inventory_qs.exists(), False)  # Este True,
+        self.assertEqual(inventory_qs.exists(), False)
         inventory_qs.delete()
 
     def test_on_delete_inventory_fk_item(self):
-        """Test on delete constraints (DO_NOTHING)"""
+        """Test on delete constraints (DELETE ON CASCADE)"""
         company_test = Company.objects.create(
             company_id='com1',
             name='Papeles de prueba')
@@ -117,7 +117,7 @@ class InventoryTestCase(TestCase):
 
         item_test.delete()
         inventory_qs = Inventory.objects.filter(pk=inventory.pk)
-        self.assertEqual(inventory_qs.exists(), False)  # Este True,
+        self.assertEqual(inventory_qs.exists(), False)
         inventory_qs.delete()
 
 
@@ -178,7 +178,7 @@ class WarehouseTestCase(TestCase):
                 warehouse.save()
 
     def test_on_delete_warehouse_fk(self):
-        """Test on delete constraints (DO_NOTHING)"""
+        """Test on delete constraints (DELETE ON CASCADE)"""
         company_test = Company.objects.create(
             company_id='com1',
             name='Papeles de prueba')
@@ -190,7 +190,7 @@ class WarehouseTestCase(TestCase):
 
         company_test.delete()
         warehouse_qs = Warehouse.objects.filter(pk=warehouse_1.pk)
-        self.assertEqual(warehouse_qs.exists(), False)  # Este True,
+        self.assertEqual(warehouse_qs.exists(), False)
         warehouse_qs.delete()
 
 
