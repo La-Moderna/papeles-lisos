@@ -1,4 +1,4 @@
-from orders.models import Authorization, OrderDetail, Order
+from orders.models import Authorization, Order, OrderDetail
 
 from rest_framework import serializers
 
