@@ -218,12 +218,21 @@ class RoleAPITestCase(APITestCase):
         }
         self.permission_1 = Permission.objects.create(codename="test_add",
                                                       description="is test")
+        self.permission_2 = Permission.objects.create(codename="add_test",
+                                                      description="test 2")
 
         self.role_1 = Role.objects.create(name="gti")
         self.role_data = {
             "name": "TEST",
             "permissions": [
                 self.permission_1.id
+                ]
+        }
+        self.role_data_1 = {
+            "name": "TST1",
+            "permissions": [
+                self.permission_1.id,
+                self.permission_2.id
                 ]
         }
 
@@ -283,4 +292,50 @@ class RoleAPITestCase(APITestCase):
         """Test retrieve role fails without token nor pk"""
 
         res = self.client.get(self.get_roles_list_url+'/'+'45')
-        self.assertEqual(res.status_code, 401)
+        self.assertEquals(res.status_code, 401)
+
+    def test_retrieve_fails_non_existing_pk(self):
+        """Test fails to retrieve non existing role"""
+
+        self.api_authentication()
+        res = self.client.get(self.get_roles_list_url+'/'+'45')
+        self.assertEquals(res.status_code, 404)
+
+    def test_retrieve_role_successfully_with_token(self):
+        """Test retrieves role successfully"""
+
+        self.api_authentication()
+        res = self.client.get(self.get_roles_list_url+'/' +
+                              str(self.role_1.id))
+        self.assertEquals(res.status_code, 200)
+
+    def test_create_role_with_permissions_fails_no_token(self):
+        """Test to create role with permissions fails without token"""
+
+        res = self.client.post(self.create_role_url,
+                               self.role_data)
+        self.assertEquals(res.status_code, 401)
+
+    def test_create_role_with_permissions_successfully(self):
+        """test to successfully create role with permissions"""
+
+        self.api_authentication()
+        res = self.client.post(self.create_role_url,
+                               self.role_data_1)
+        self.assertEquals(res.status_code, 201)
+
+    def test_destroys_role_fails_without_token(self):
+        """Test fails to destroy role without token"""
+
+        res = self.client.delete(self.create_role_url)
+        self.assertEquals(res.status_code, 401)
+
+    def test_destroys_role_successfully(self):
+        """Test to destroy(logically) a role"""
+
+        self.api_authentication()
+        res = self.client.delete(self.create_role_url+'/'+str(self.role_1.id))
+        self.assertEquals(res.status_code, 200)
+
+    def tearDown(self):
+        return super().tearDown()

@@ -243,7 +243,7 @@ router.register(
 )
 
 router.register(
-    r'users/update',
+    r'users/add_role',
     AddRoleUserViewSet,
     basename="user_role_add"
 )
