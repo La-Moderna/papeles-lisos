@@ -7,9 +7,18 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from users import serializers
+from users.models import Permission, Role
 
-from utils.mixins import BaseGenericViewSet
+from utils.mixins import (
+    BaseGenericViewSet,
+    CreateModelMixin,
+    DestroyModelMixin,
+    ListModelMixin,
+    RetrieveModelMixin,
+    UpdateModelMixin
+)
 from utils.routers import SingleObjectRouter
+
 
 from app.urls import router
 
@@ -118,6 +127,96 @@ class CreateUserViewSet(mixins.CreateModelMixin,
             )
 
 
+class AddRoleUserViewSet(CreateModelMixin,
+                         UpdateModelMixin,
+                         viewsets.GenericViewSet,
+                         BaseGenericViewSet):
+    serializer_class = serializers.RetrieveRoleNameSerializer
+    create_serializer_class = serializers.RetrieveRoleNameSerializer
+    update_serializer_class = serializers.RetrieveRoleNameSerializer
+    queryset = User.objects.filter(is_active=True)
+
+    def partial_update(self, request, *args, **kwargs):
+        pk = kwargs.get('pk')
+        print(pk)
+        user = get_object_or_404(self.get_queryset(), pk=int(kwargs['pk']))
+        if (user):
+
+            data = request.data['roles']
+
+            for role in data:
+                role_1 = get_object_or_404(Role, pk=int(role['id']))
+                if(role_1):
+                    user.roles.add(role_1)
+                else:
+                    return Response('Role does not exist')
+            user.save()
+
+            return Response(data)
+        return Response(
+            "Hubo un error",
+            status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+class CreatePermissionViewset(CreateModelMixin,
+                              ListModelMixin,
+                              RetrieveModelMixin,
+                              UpdateModelMixin,
+                              DestroyModelMixin,
+                              viewsets.GenericViewSet,
+                              BaseGenericViewSet):
+    """Manage creation of permission"""
+
+    serializer_class = serializers.UserPermissionSerializer
+    create_serializer_class = serializers.UserPermissionSerializer
+    list_serializer_class = serializers.RetrievePermissionSerializer
+    retrieve_serializer_class = serializers.RetrievePermissionSerializer
+    update_serializer_class = serializers.UserPermissionSerializer
+    queryset = Permission.objects.filter(is_active=True)
+
+
+class CreateRoleViewset(CreateModelMixin,
+                        ListModelMixin,
+                        RetrieveModelMixin,
+                        DestroyModelMixin,
+                        viewsets.GenericViewSet,
+                        BaseGenericViewSet):
+
+    serializer_class = serializers.UserRoleSerializer
+    create_serializer_class = serializers.RolePermissionSerializer
+    list_serializer_class = serializers.RetrieveRoleSerializer
+    retrieve_serializer_class = serializers.RetrieveRoleSerializer
+    update_serializer_class = serializers.UserRoleSerializer
+    queryset = Role.objects.filter(is_active=True)
+
+    def create(self, request, *args, **kwargs):
+
+        validate_serializer = self.get_serializer(
+            data=request.data,
+        )
+        validation_response = validate_serializer.is_valid(
+            raise_exception=True)
+
+        if validation_response:
+            # Revisar webservice de AD
+            data = validate_serializer.data
+            rol = Role.objects.create(name=data['name'])
+            permisos = data['permissions']
+            for i in permisos:
+                rol.permissions.add(i)
+            rol.save()
+            return Response(
+                validate_serializer.data,
+                status=status.HTTP_201_CREATED
+            )
+        else:
+            return Response(
+                validate_serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+
 router.register(
     r'auth',
     AuthViewSet,
@@ -135,4 +234,22 @@ router.register(
     r'users/create',
     CreateUserViewSet,
     basename="user_create"
+)
+
+router.register(
+    r'users/roles',
+    CreateRoleViewset,
+    basename="role"
+)
+
+router.register(
+    r'users/update',
+    AddRoleUserViewSet,
+    basename="user_role_add"
+)
+
+router.register(
+    r'users/permissions',
+    CreatePermissionViewset,
+    basename='permission'
 )

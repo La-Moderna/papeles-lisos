@@ -1,41 +1,106 @@
 """Serializer for user API."""
 from django.contrib.auth.base_user import BaseUserManager
-from django.contrib.auth.models import Group, Permission
+# from django.contrib.auth.models import Group, Permission
 
 from rest_framework import serializers
 
-from users.models import User
+from users.models import Permission, Role, User
 
 from utils.tokens import create_token
 
 
+# class UserPermissionSerializer(serializers.ModelSerializer):
+#     """Serializer for user permissions"""
+
+#     class Meta:
+#         """Define the class behavior"""
+
+#         model = Permission
+#         fields = '__all__'
+
+
+# class GroupPermissionSerializer(serializers.ModelSerializer):
+#     """Serializer for user groups."""
+
+#     permissions = UserPermissionSerializer(many=True)
+
+#     class Meta:
+#         """Define the class behavior"""
+
+#         model = Group
+#         fields = '__all__'
+
 class UserPermissionSerializer(serializers.ModelSerializer):
-    """Serializer for user permissions"""
 
+    """Serializer for permissions of a role"""
     class Meta:
-        """Define the class behavior"""
-
+        """Define behaivor"""
         model = Permission
         fields = '__all__'
 
 
-class GroupPermissionSerializer(serializers.ModelSerializer):
-    """Serializer for user groups."""
+class RetrievePermissionSerializer(serializers.ModelSerializer):
+    """Serializer for listing permissions"""
 
-    permissions = UserPermissionSerializer(many=True)
+    def validate(self, data):
+        try:
+            permiso = Permission.objects.get(id=data.get('id'))
+            print(permiso)
+        except Permission.DoesNotExist:
+            raise serializers.ValidationError("permission does not exist")
+        return data
 
     class Meta:
-        """Define the class behavior"""
+        """Define behavior"""
+        model = Permission
+        fields = [
+            'id',
+            'codename',
+            'description'
+        ]
 
-        model = Group
+
+class UserRoleSerializer(serializers.ModelSerializer):
+    """Serializer for user roles"""
+
+    class Meta:
+        """Define the class behaivor"""
+        model = Role
         fields = '__all__'
+
+
+class RolePermissionSerializer(UserRoleSerializer):
+
+    permissions = UserPermissionSerializer(many=True, read_only=True)
+
+
+class RetrieveRoleSerializer(serializers.ModelSerializer):
+    """Serializer for listing and retrieving roles"""
+
+    permissions = UserPermissionSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Role
+        fields = [
+            'id',
+            'name',
+            'permissions'
+        ]
+
+
+class RetrieveRoleNameSerializer(serializers.ModelSerializer):
+    """Serializer for listing and retrieving roles"""
+    class Meta:
+        model = Role
+        fields = ['id',
+                  'name']
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
     """Profile serializer."""
 
-    user_permissions = UserPermissionSerializer(many=True)
-    groups = GroupPermissionSerializer(many=True)
+    # user_permissions = UserPermissionSerializer(many=True)
+    roles = UserRoleSerializer(many=True)
 
     class Meta:
         """Define behaivor."""
@@ -44,8 +109,29 @@ class UserProfileSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'email',
-            'user_permissions',
-            'groups'
+            'roles'
+        ]
+
+
+class RetrieveUserNameSerializer(serializers.ModelSerializer):
+    """Profile serializer."""
+
+    class Meta:
+        """Define behaivor."""
+
+        model = User
+        fields = 'id'
+
+
+class AddUserRoleSerializer(serializers.ModelSerializer):
+    """Serializer for adding role to user"""
+    roles = RetrieveRoleNameSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'roles'
         ]
 
 
@@ -108,3 +194,11 @@ class CreateUserSerializer(serializers.Serializer):
             )
         else:
             return value
+
+
+class RoleSerializer(serializers.ModelSerializer):
+    """Role serializer"""
+
+    class Meta:
+        model = Role
+        fields = '__all__'

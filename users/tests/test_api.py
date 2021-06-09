@@ -3,7 +3,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from users.models import User
+from users.models import Permission, Role, User
 
 
 class AuthAPITestCase(APITestCase):
@@ -167,7 +167,7 @@ class MeAPITestCase(APITestCase):
             response.data
         )
         self.assertEqual(
-            {'id', 'email', 'user_permissions', 'groups'},
+            {'id', 'email', 'roles'},
             set(response.data.keys())
         )
 
@@ -204,3 +204,83 @@ class MeAPITestCase(APITestCase):
 
     def tearDown(self):
         return super().tearDown()
+
+
+class RoleAPITestCase(APITestCase):
+    """Test roles endpoint"""
+    def setUp(self):
+        self.url_auth = reverse('auth-list')
+        self.user = User.objects.create_user("test@gmail.com",
+                                             "root")
+        self.user_info = {
+            'email': self.user.email,
+            "password": "root"
+        }
+        self.permission_1 = Permission.objects.create(codename="test_add",
+                                                      description="is test")
+
+        self.role_1 = Role.objects.create(name="gti")
+        self.role_data = {
+            "name": "TEST",
+            "permissions": [
+                self.permission_1.id
+                ]
+        }
+
+        self.get_roles_list_url = reverse('role-list')
+        self.create_role_url = reverse('role-list')
+        self.get_permissions_list_url = reverse('permission-list')
+
+    def api_authentication(self):
+        res = self.client.post(self.url_auth,
+                               self.user_info)
+
+        token = res.json()['token']
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer '+token)
+
+    def test_create_role_fails_without_token_nor_data(self):
+
+        res = self.client.post(self.create_role_url)
+        self.assertEqual(res.status_code, 401)
+
+    def test_create_role_fails_without_token(self):
+        """Test fails to create role without fields"""
+
+        self.api_authentication()
+        res = self.client.post(self.create_role_url)
+        self.assertEqual(res.status_code, 400)
+
+    def test_create_role_fails_with_info_not_token(self):
+        """Test fails to create role without token"""
+
+        res = self.client.post(self.create_role_url,
+                               self.role_data)
+        self.assertEqual(res.status_code, 401)
+
+    def test_create_role_success_with_correct_info(self):
+        """Test creates role with necessary fields"""
+
+        self.api_authentication()
+        res = self.client.post(self.create_role_url,
+                               self.role_data)
+        self.assertEqual(res.status_code, 201)
+
+    def test_list_roles_fails_without_token(self):
+        """Test fails to list roles without token"""
+
+        res = self.client.get(self.get_roles_list_url)
+        self.assertEquals(res.status_code, 401)
+
+    def test_list_roles_with_token_success(self):
+        """Test list roles successfully"""
+
+        self.api_authentication()
+
+        res = self.client.get(self.get_roles_list_url)
+        self.assertEquals(res.status_code, 200)
+
+    def test_retrieve_role_fails_without_token_nor_pk(self):
+        """Test retrieve role fails without token nor pk"""
+
+        res = self.client.get(self.get_roles_list_url+'/'+'45')
+        self.assertEqual(res.status_code, 401)
