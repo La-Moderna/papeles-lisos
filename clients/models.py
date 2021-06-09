@@ -29,7 +29,7 @@ class PriceList(ActiveMixin):
     company = models.ForeignKey(
         Company,
         on_delete=models.CASCADE,
-        verbose_name='prices'
+        verbose_name='price_lists'
     )
     item = models.ForeignKey(
         Item,
