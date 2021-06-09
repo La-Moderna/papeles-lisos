@@ -1,41 +1,42 @@
 """Serializer for user API."""
 from django.contrib.auth.base_user import BaseUserManager
-# from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.models import Group, Permission
 
 from rest_framework import serializers
 
-from users.models import Permission, Role, User
+from users.models import Permission as CustomPermission, Role, User
 
 from utils.tokens import create_token
 
 
-# class UserPermissionSerializer(serializers.ModelSerializer):
-#     """Serializer for user permissions"""
-
-#     class Meta:
-#         """Define the class behavior"""
-
-#         model = Permission
-#         fields = '__all__'
-
-
-# class GroupPermissionSerializer(serializers.ModelSerializer):
-#     """Serializer for user groups."""
-
-#     permissions = UserPermissionSerializer(many=True)
-
-#     class Meta:
-#         """Define the class behavior"""
-
-#         model = Group
-#         fields = '__all__'
-
 class UserPermissionSerializer(serializers.ModelSerializer):
+    """Serializer for user permissions"""
+
+    class Meta:
+        """Define the class behavior"""
+
+        model = Permission
+        fields = '__all__'
+
+
+class GroupPermissionSerializer(serializers.ModelSerializer):
+    """Serializer for user groups."""
+
+    permissions = UserPermissionSerializer(many=True)
+
+    class Meta:
+        """Define the class behavior"""
+
+        model = Group
+        fields = '__all__'
+
+
+class UserPermissionCustomSerializer(serializers.ModelSerializer):
 
     """Serializer for permissions of a role"""
     class Meta:
         """Define behaivor"""
-        model = Permission
+        model = CustomPermission
         fields = '__all__'
 
 
@@ -71,13 +72,13 @@ class UserRoleSerializer(serializers.ModelSerializer):
 
 class RolePermissionSerializer(UserRoleSerializer):
 
-    permissions = UserPermissionSerializer(many=True, read_only=True)
+    permissions = UserPermissionCustomSerializer(many=True, read_only=True)
 
 
 class RetrieveRoleSerializer(serializers.ModelSerializer):
     """Serializer for listing and retrieving roles"""
 
-    permissions = UserPermissionSerializer(many=True, read_only=True)
+    permissions = UserPermissionCustomSerializer(many=True, read_only=True)
 
     class Meta:
         model = Role
