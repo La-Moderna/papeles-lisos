@@ -143,7 +143,6 @@ class AddRoleUserViewSet(CreateModelMixin,
         if (user):
 
             data = request.data['roles']
-
             for role in data:
                 role_1 = get_object_or_404(Role, pk=int(role['id']))
                 if(role_1):
@@ -243,7 +242,7 @@ router.register(
 )
 
 router.register(
-    r'users/add_role',
+    r'users/add-role',
     AddRoleUserViewSet,
     basename="user_role_add"
 )

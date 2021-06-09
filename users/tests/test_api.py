@@ -1,3 +1,5 @@
+import json
+
 from django.urls import reverse
 
 from rest_framework import status
@@ -339,3 +341,92 @@ class RoleAPITestCase(APITestCase):
 
     def tearDown(self):
         return super().tearDown()
+
+
+class RoleUserAPITestCase(APITestCase):
+    """Test add roles to user"""
+
+    def setUp(self):
+        self.url_auth = reverse('auth-list')
+        self.user = User.objects.create_user("test2@gmail.com",
+                                             "root")
+        self.user_info = {
+            'email': self.user.email,
+            "password": "root"
+        }
+
+        self.role_1 = Role.objects.create(name="VTEST")
+        self.role_2 = Role.objects.create(name="TES2")
+        self.role_3 = Role.objects.create(name="VYUT")
+
+        self.roles_array = [
+                {"id": self.role_1.id},
+                {"id": self.role_2.id},
+                {"id": self.role_3.id}
+            ]
+
+        self.roles_data = {
+            'roles': [
+                {"id": self.role_1.id},
+                {"id": self.role_2.id},
+                {"id": self.role_3.id}
+            ]
+        }
+        self.roles_data_dummy = {
+            'roles': [
+                {"id": 34}
+            ]
+        }
+
+        self.get_roles_list_url = reverse('role-list')
+        self.get_permissions_list_url = reverse('permission-list')
+        # self.add_role_url = reverse('user_role_add-detail')
+        # self.add_permission_url = reverse('permission-detail')
+
+    def api_authentication(self):
+        res = self.client.post(self.url_auth,
+                               self.user_info)
+        token = res.json()['token']
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer '+token)
+
+    def test_add_role_user_fails_without_token(self):
+        """Test to add role to user fails with no token"""
+
+        res = self.client.patch(reverse('user_role_add-detail',
+                                kwargs={'pk': self.user.id}),
+                                json.dumps(self.roles_data),
+                                content_type='application/json')
+
+        self.assertEquals(res.status_code, 401)
+
+    def test_add_role_to_non_existent_user_fails(self):
+        """Test fails to add roles to a non existing user"""
+
+        self.api_authentication()
+        res = self.client.patch(reverse('user_role_add-detail',
+                                kwargs={'pk': 78}),
+                                json.dumps(self.roles_data),
+                                content_type='application/json')
+
+        self.assertEquals(res.status_code, 404)
+
+    def test_add_non_existing_role_fails(self):
+        """Test fails to add a non existing role"""
+        self.api_authentication()
+        res = self.client.patch(reverse('user_role_add-detail',
+                                kwargs={'pk': self.user.id}),
+                                json.dumps(self.roles_data_dummy),
+                                content_type='application/json')
+
+        self.assertEquals(res.status_code, 404)
+
+    def test_add_role_user_successfully(self):
+        """Test succeeds to add roles to an existing user"""
+
+        self.api_authentication()
+        res = self.client.patch(reverse('user_role_add-detail',
+                                kwargs={'pk': self.user.id}),
+                                json.dumps(self.roles_data),
+                                content_type='application/json')
+
+        self.assertEquals(res.status_code, 200)
