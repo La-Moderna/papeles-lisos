@@ -167,7 +167,7 @@ class MeAPITestCase(APITestCase):
             response.data
         )
         self.assertEqual(
-            {'id', 'email', 'roles'},
+            {'id', 'email', 'user_permissions', 'groups'},
             set(response.data.keys())
         )
 

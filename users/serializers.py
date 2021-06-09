@@ -100,6 +100,24 @@ class RetrieveRoleNameSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     """Profile serializer."""
 
+    user_permissions = UserPermissionSerializer(many=True)
+    groups = GroupPermissionSerializer(many=True)
+
+    class Meta:
+        """Define behaivor."""
+
+        model = User
+        fields = [
+            'id',
+            'email',
+            'user_permissions',
+            'groups'
+        ]
+
+
+class UserProfileCustomSerializer(serializers.ModelSerializer):
+    """Profile serializer."""
+
     # user_permissions = UserPermissionSerializer(many=True)
     roles = UserRoleSerializer(many=True)
 
