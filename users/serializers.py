@@ -101,6 +101,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     user_permissions = UserPermissionSerializer(many=True)
     groups = GroupPermissionSerializer(many=True)
+    roles = RolePermissionSerializer(many=True)
 
     class Meta:
         """Define behaivor."""
@@ -110,7 +111,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'id',
             'email',
             'user_permissions',
-            'groups'
+            'groups',
+            'roles'
         ]
 
 
