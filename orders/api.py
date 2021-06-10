@@ -294,6 +294,12 @@ router.register(
 )
 
 router.register(
+    r'invoices',
+    InvoiceViewset,
+    'invoice'
+)
+
+router.register(
     r'deliver-addresses',
     DeliverAddressViewset,
     basename='deliver-address'
