@@ -13,7 +13,7 @@ from orders.models import (
     SalesOrder
 )
 
-from rest_framework import response, status, viewsets
+from rest_framework import mixins, response, status, viewsets
 
 from utils.mixins import (
     BaseGenericViewSet,
@@ -34,10 +34,11 @@ class OrderViewset(ListModelMixin,
                    BaseGenericViewSet):
 
     serializer_class = serializers.OrderSerializer
-    queryset = Order.objects.all()
-    create_serializer_class = serializers.CreateOrderSerializer
     list_serializer_class = serializers.OrderSerializer
+    create_serializer_class = serializers.CreateOrderSerializer
     update_serializer_class = serializers.CreateOrderSerializer
+
+    queryset = Order.objects.all()
 
     def create(self, request, *args, **kwargs):
 
@@ -55,22 +56,23 @@ class OrderViewset(ListModelMixin,
             data=request.data
         )
 
-        if (not order_detail_serializer.is_valid()):
-            return response.Response(
-                data=order_detail_serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        order_detail_serializer.is_valid(raise_exception=True)
 
-        order_serializer = serializers.CreateOrderSerializer(
-            data=request.data
+        order_serializer = self.get_serializer(
+            data=request.data,
+            action='create'
         )
 
-        if order_serializer.is_valid():
-            order = Order.objects.create()
+        order_serializer.is_valid(raise_exception=True)
+
+        try:
+            order = Order.objects.create(
+                obsOrder=order_serializer.data['obsOrder'],
+                fechaOrden=order_serializer.data['fechaOrden'],
+                fechaSolicitada=order_serializer.data['fechaSolicitada']
+            )
+
             order.ordenCompra = order.id
-            order.obsOrder = order_serializer.data['obsOrder']
-            order.fechaOrden = order_serializer.data['fechaOrden']
-            order.fechaSolicitada = order_serializer.data['fechaSolicitada']
             order.save()
 
             sales_order = SalesOrder.objects.create(
@@ -99,18 +101,31 @@ class OrderViewset(ListModelMixin,
 
             authorization.save()
 
-        else:
-            return response.Response(
-                data=order_serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            order_serializer = serializers.OrderSerializer(order)
+        except Exception:
+            if "order" in locals():
+                order.detele()
 
-        order_serializer = serializers.OrderSerializer(order)
+            if "sales_order" in locals():
+                sales_order.detele()
+
+            if "order_detail" in locals():
+                order_detail.detele()
+
+            if "authorization" in locals():
+                authorization.detele()
+
+            return response.Response(
+                data={
+                    "error": "An error ocurre while creating order"
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
         return response.Response(
-                data=order_serializer.data,
-                status=status.HTTP_201_CREATED
-            )
+            data=order_serializer.data,
+            status=status.HTTP_201_CREATED
+        )
 
 
 class OrderDetailViewset(RetrieveModelMixin,
@@ -141,11 +156,10 @@ class OrderDetailViewset(RetrieveModelMixin,
         return obj
 
 
-class AreaStatusViewset(RetrieveModelMixin,
+class AreaStatusViewset(mixins.RetrieveModelMixin,
                         viewsets.GenericViewSet,
                         BaseGenericViewSet):
     serializer_class = serializers.AuthorizationSerializer
-    retrieve_serializer_class = serializers.AuthorizationSerializer
 
     # Missing filter with Orders that has salesOrder or inProgress
     queryset = Authorization.objects.all()
@@ -165,11 +179,6 @@ class AreaStatusViewset(RetrieveModelMixin,
         self.check_object_permissions(self.request, obj)
 
         return obj
-
-    # Missing check if user has rol of VTA or AGE
-    # Missing order filter (all, in progress, processed)
-    def list(self, request, *args, **kwargs):
-        return super(AreaStatusViewset, self).list(request, *args, **kwargs)
 
 
 class DeliveredQuantityViewset(ListModelMixin,
@@ -259,21 +268,21 @@ class DeliverAddressViewset(ListModelMixin,
 
 
 router.register(
-    r'order',
+    r'orders',
     OrderViewset,
-    'order'
+    basename='order'
 )
 
 
 router.register(
-    r'order/detail',
+    r'orders-detail',
     OrderDetailViewset,
-    'order-detail'
+    basename='orders-detail'
 )
 
 
 router.register(
-    r'order/status',
+    r'order-status',
     AreaStatusViewset,
     'auth-order'
 )
